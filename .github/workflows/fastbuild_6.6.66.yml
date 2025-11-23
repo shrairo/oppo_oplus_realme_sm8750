@@ -259,7 +259,6 @@ jobs:
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
             echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
             sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
-          fi
           elif [[ ${{ github.event.inputs.ksu_type }} == "none" ]]; then
             echo "不添加KernelSU"
           fi
@@ -332,7 +331,6 @@ jobs:
             cd ../common
             patch -p1 < 50_add_susfs_in_gki-${{ env.ANDROID_VERSION }}-${{ env.KERNEL_VERSION }}.patch || true
             patch -p1 -N -F 3 < 69_hide_stuff.patch || true
-          fi
           elif [[ ${{ github.event.inputs.ksu_type }} == "none" ]]; then
             echo "不添加KernelSU补丁"
           fi
