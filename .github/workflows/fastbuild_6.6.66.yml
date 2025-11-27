@@ -268,7 +268,7 @@ jobs:
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
             echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
             sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
-          if [[ ${{ github.event.inputs.ksu_type }} == "none" ]]; then
+          elif [[ ${{ github.event.inputs.ksu_type }} == "none" ]]; then
             echo "不添加Bulid in Kernel"
           fi
 
