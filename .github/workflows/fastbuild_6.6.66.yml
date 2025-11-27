@@ -13,17 +13,18 @@ on:
         description: 'KernelSU分支(SukiSU Ultra/KernelSU Next/MKSU/KernelSU(原版),默认SukiSU Ultra)'
         required: true
         type: choice
-        default: 'sukisu'
+        default: 'none'
         options:
           - 'sukisu'
           - 'ksunext'
           - 'mksu'
           - 'ksu'
+          - 'none'
       susfs_enable:
         description: '是否开启susfs(用于增强隐藏环境挂载功能; 可能轻微增加耗电，上游更新导致不稳定时或不需要可关闭)'
         required: true
         type: boolean
-        default: 'true'
+        default: 'false'
       kpm_enable:
         description: '是否开启kpm(仅对sukisu生效; 可能轻微增加耗电，不需要可保持默认关闭)'
         required: true
@@ -73,7 +74,7 @@ on:
         description: '是否开启内核级基带保护(阻止一切对非用户分区的写入，有效防止格机)'
         required: true
         type: boolean
-        default: 'true'
+        default: 'false'
       ccache_debug:
         description: '是否上传 Ccache调试日志(用于调试, 无需要可关闭)'
         required: true
@@ -259,7 +260,7 @@ jobs:
             cd ../common/drivers/kernelsu
             wget https://github.com/WildKernels/kernel_patches/raw/refs/heads/main/next/susfs_fix_patches/v1.5.12/fix_apk_sign.c.patch
             patch -p2 -N -F 3 < fix_apk_sign.c.patch || true
-          else
+          elif [[ ${{ github.event.inputs.ksu_type }} == "kernelsu" ]]; then
             echo "正在配置原版 KernelSU (tiann/KernelSU)..."
             curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/refs/heads/main/kernel/setup.sh" | bash -s main
             cd ./KernelSU
@@ -267,6 +268,8 @@ jobs:
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
             echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
             sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
+          if [[ ${{ github.event.inputs.ksu_type }} == "none" ]]; then
+            echo "不添加Bulid in Kernel"
           fi
 
       - name: 应用 KernelSU & SUSFS 补丁
@@ -318,7 +321,7 @@ jobs:
             cd ../common
             patch -p1 < 50_add_susfs_in_gki-${{ env.ANDROID_VERSION }}-${{ env.KERNEL_VERSION }}.patch || true
             patch -p1 -N -F 3 < 69_hide_stuff.patch || true
-          else
+          if [[ ${{ github.event.inputs.ksu_type }} == "kernelsu" ]]; then
             echo "正在为原版 KernelSU (tiann/KernelSU)添加补丁..."
             git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-${{ env.ANDROID_VERSION }}-${{ env.KERNEL_VERSION }}
             git clone https://github.com/ShirkNeko/SukiSU_patch.git
@@ -334,7 +337,6 @@ jobs:
             cd ../common
             patch -p1 < 50_add_susfs_in_gki-${{ env.ANDROID_VERSION }}-${{ env.KERNEL_VERSION }}.patch || true
             patch -p1 -N -F 3 < 69_hide_stuff.patch || true
-          fi
           
       - name: 应用lz4 1.10.0 & zstd 1.5.7补丁
         run: |
